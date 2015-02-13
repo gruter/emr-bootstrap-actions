@@ -1,0 +1,24 @@
+#!/bin/bash
+
+SPARK_AWS_UTIL_HOME=`dirname "$0"`
+SPARK_AWS_UTIL_HOME=`cd "$SPARK_AWS_UTIL_HOME"; pwd`
+
+INSTANCE_COUNT=$1
+if [ -z $INSTANCE_COUNT ]; then
+	INSTANCE_COUNT=16
+fi
+
+aws emr create-cluster \
+	--name spark-tpch-1t-benchmark-c3-xlarge-16 \
+	--ami-version 3.3.1 \
+	--instance-groups InstanceGroupType=MASTER,InstanceCount=1,InstanceType=c3.xlarge \
+	InstanceGroupType=CORE,InstanceCount=$INSTANCE_COUNT,InstanceType=c3.4xlarge \
+	--ec2-attributes KeyName=yjpark-us \
+	--applications Name=Hive \
+	--bootstrap-action Path=s3://support.elasticmapreduce/spark/install-spark,Name=install-spark,Args=[-x] \
+	--steps \
+Name=SparkHistoryServer,Jar=s3://elasticmapreduce/libs/script-runner/script-runner.jar,Args=s3://support.elasticmapreduce/spark/start-history-server \
+	--log-uri s3://yjpark.gruter/emr-logs/ \
+	--enable-debugging \
+	>> emr-launch.log
+

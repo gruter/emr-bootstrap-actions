@@ -1,0 +1,22 @@
+#!/bin/bash
+
+PRESTO_AWS_UTIL_HOME=`dirname "$0"`
+PRESTO_AWS_UTIL_HOME=`cd "$PRESTO_AWS_UTIL_HOME"; pwd`
+
+INSTANCE_COUNT=$1
+if [ -z $INSTANCE_COUNT ]; then
+	INSTANCE_COUNT=16
+fi
+
+aws emr create-cluster \
+	--name presto-tpch-benchmark-c3xlarge16 \
+	--ami-version 3.3.1 \
+	--instance-groups InstanceGroupType=MASTER,InstanceCount=1,InstanceType=c3.xlarge \
+	InstanceGroupType=CORE,InstanceCount=$INSTANCE_COUNT,InstanceType=c3.4xlarge \
+	--ec2-attributes KeyName=yjpark-us \
+	--applications Name=Hive \
+	--bootstrap-actions Path=s3://yjpark.gruter/deploy-tools/install-presto-latest.rb,Name=install-presto,Args=[-s,s3://yjpark.gruter/deploy-tools/presto-tarball/presto-server-0.89.tar.gz,-c,s3://yjpark.gruter/deploy-tools/presto-tarball/presto-cli-0.89-executable.jar,-m,c3.xlarge.master-config.properties,-w,s3://yjpark.gruter/deploy-tools/c3.4xlarge.worker-config.properties] \
+	--log-uri s3://yjpark.gruter/emr-logs/ \
+	--enable-debugging \
+	>> emr-launch.log
+

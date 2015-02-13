@@ -208,8 +208,8 @@ end
 #parses the configurable options given with the bootstrap action. All are optional
 def parseOptions
   configurable_options = {
-      :s3_path_to_presto_server_bin => "s3://thaparp-samples/presto/0.78-with-patches/presto-server-0.78.tar.gz",
-      :s3_path_to_presto_cli => "s3://thaparp-samples/presto/0.78-with-patches/presto-cli-0.78-executable.jar",
+      :s3_path_to_presto_server_bin => "s3://thaparp-samples/presto/0.88-with-patches/presto-server-0.88.tar.gz",
+      :s3_path_to_presto_cli => "s3://thaparp-samples/presto/0.88-with-patches/presto-cli-0.88-executable.jar",
       :hive_metastore_port => "9083"
   }
 
@@ -340,6 +340,11 @@ def installPresto
     run "mv /tmp/presto-cli-executible.jar /home/hadoop/presto"
     sudo "chmod +x  /home/hadoop/presto"
   end
+
+  #change  launcher.py to take java 8
+  run "sed -e \"s\/'java'\/'\\/usr\\/java\\/latest\\/bin\\/java'/\" /home/hadoop/presto-server/bin/launcher.py > /tmp/launcher.py" 
+  run "mv /tmp/launcher.py /home/hadoop/presto-server/bin/launcher.py"
+  run "chmod +x /home/hadoop/presto-server/bin/launcher.py"
   writeConfigs(configurable_options)
   prepareHiveForRemoteMetatore(configurable_options[:hive_metastore_port])
   addMetaStoreToHiveInit(configurable_options[:hive_metastore_port])
@@ -362,7 +367,7 @@ def writePrestoFilesForServiceNanny
   println "Making /etc/init.d/presto-launcher"
   File.open('/tmp/presto-launcher', 'w') do |f|
     f.write(<<EOF
-/home/hadoop/presto-server/bin/launcher $@
+su - hadoop -c "/home/hadoop/presto-server/bin/launcher $@"
 EOF
     )
   end
@@ -407,4 +412,9 @@ def reloadServiceNanny
   end
 end
 
+run "hdfs dfs -copyToLocal s3://thaparp-samples/presto/0.88-with-patches/jdk-8u25-linux-x64.tar.gz /tmp/"
+sudo "tar zxvf /tmp/jdk-8u25-linux-x64.tar.gz -C /usr/java/"
+sudo "rm -rf /usr/java/latest"
+sudo "ln -s /usr/java/jdk1.8.0_25/ /usr/java/latest"
 installPresto
+run "/home/hadoop/hive/bin/hive-init &"
