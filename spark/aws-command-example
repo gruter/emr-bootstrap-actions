@@ -4,7 +4,7 @@ SPARK_AWS_UTIL_HOME=`dirname "$0"`
 SPARK_AWS_UTIL_HOME=`cd "$SPARK_AWS_UTIL_HOME"; pwd`
 WORKER_NUMBER=4
 
-## Must be enter.
+## Required
 KEYPAIR_NAME=
 S3_BUCKET=
 

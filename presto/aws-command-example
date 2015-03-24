@@ -4,7 +4,7 @@ PRESTO_AWS_UTIL_HOME=`dirname "$0"`
 PRESTO_AWS_UTIL_HOME=`cd "$PRESTO_AWS_UTIL_HOME"; pwd`
 WORKER_NUMBER=4
 
-## Must be enter.
+## Required
 KEYPAIR_NAME=
 S3_BUCKET=
 

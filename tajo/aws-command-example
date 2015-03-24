@@ -2,7 +2,7 @@
 
 WORKER_NUMBER=4
 
-## Must be enter.
+## Required
 KEYPAIR_NAME=
 S3_BUCKET=
 
