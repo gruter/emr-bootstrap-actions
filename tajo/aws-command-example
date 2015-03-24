@@ -1,0 +1,9 @@
+#!/bin/bash
+
+WORKER_NUMBER=4
+
+## Must be enter.
+KEYPAIR_NAME=
+S3_BUCKET=
+
+./aws emr create-cluster --name="tajo-emr-test" --ami-version=3.3 --ec2-attributes KeyName=${KEYPAIR_NAME} --no-auto-terminate --instance-groups InstanceGroupType=MASTER,InstanceCount=1,InstanceType=c3.xlarge InstanceGroupType=CORE,InstanceCount=${WORKER_NUMBER},InstanceType=c3.4xlarge --bootstrap-action Name="Install tajo",Path=s3://${S3_BUCKET}/install-tajo.sh,Args=["-t","s3://${S3_BUCKET}/tajo-tarball/tajo-0.9.1-SNAPSHOT.tar.gz","-c","s3://${S3_BUCKET}/template/c3.4xlarge/conf","-s","tajo.rootdir=s3://${S3_BUCKET}/tajo]

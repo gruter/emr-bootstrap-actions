@@ -1,0 +1,22 @@
+#!/bin/bash
+
+SPARK_AWS_UTIL_HOME=`dirname "$0"`
+SPARK_AWS_UTIL_HOME=`cd "$SPARK_AWS_UTIL_HOME"; pwd`
+WORKER_NUMBER=4
+
+## Must be enter.
+KEYPAIR_NAME=
+S3_BUCKET=
+
+aws emr create-cluster \
+	--name spark-emr-test \
+	--ami-version 3.3.1 \
+	--instance-groups InstanceGroupType=MASTER,InstanceCount=1,InstanceType=c3.xlarge \
+	InstanceGroupType=CORE,InstanceCount=${WORKER_NUMBER},InstanceType=c3.4xlarge \
+	--ec2-attributes KeyName=${KEYPAIR_NAME} \
+	--applications Name=Hive \
+	--bootstrap-action Path=s3://support.elasticmapreduce/spark/install-spark,Name=install-spark,Args=[-x] \
+	--steps \
+Name=SparkHistoryServer,Jar=s3://elasticmapreduce/libs/script-runner/script-runner.jar,Args=s3://support.elasticmapreduce/spark/start-history-server \
+	--log-uri s3://${S3_BUCKET}/emr-logs/ \
+	--enable-debugging

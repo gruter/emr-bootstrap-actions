@@ -1,0 +1,21 @@
+#!/bin/bash
+
+PRESTO_AWS_UTIL_HOME=`dirname "$0"`
+PRESTO_AWS_UTIL_HOME=`cd "$PRESTO_AWS_UTIL_HOME"; pwd`
+WORKER_NUMBER=4
+
+## Must be enter.
+KEYPAIR_NAME=
+S3_BUCKET=
+
+
+aws emr create-cluster \
+	--name presto-emr-test \
+	--ami-version 3.3.1 \
+	--instance-groups InstanceGroupType=MASTER,InstanceCount=1,InstanceType=c3.xlarge \
+	InstanceGroupType=CORE,InstanceCount=${WORKER_NUMBER},InstanceType=c3.4xlarge \
+	--ec2-attributes KeyName=${KEYPAIR_NAME} \
+	--applications Name=Hive \
+	--bootstrap-actions Path=s3://${S3_BUCKET}/install-presto-latest.rb,Name=install-presto,Args=[-s,s3://${S3_BUCKET}/presto-tarball/presto-server-0.89.tar.gz,-c,s3://${S3_BUCKET}/presto-tarball/presto-cli-0.89-executable.jar,-m,s3://${S3_BUCKET}/config/master-config.properties,-w,s3://${S3_BUCKET}/config/c3.4xlarge.worker-config.properties] \
+	--log-uri s3://${S3_BUCKET}/emr-logs/ \
+	--enable-debugging
