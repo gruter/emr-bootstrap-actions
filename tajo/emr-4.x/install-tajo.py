@@ -59,6 +59,12 @@
 #
 #       ex) --site "tajo.rootdir=s3://mybucket/tajo tajo.worker.start.cleanup=true tajo.catalog.store.class=org.apache.tajo.catalog.store.MySQLStore"
 #
+# -j, --java
+#       The java SDK version (Optional)
+#       To install JDK of new version using yum and set on environment if condition is true.
+#
+#       ex) --java "1.8"
+#
 # -T, --test-home
 #       The Test directory path(Only test)
 #
@@ -304,7 +310,7 @@ launcherUtil.start()'''
 
 class LauncherUtil:
     EXPORT_LIBS = '''
-export JAVA_HOME=/usr/lib/jvm/java-1.7.0-openjdk.x86_64
+export JAVA_HOME=%s
 export HADOOP_HOME=%s
 export HADOOP_MAPREDUCE_HOME=%s
 export HADOOP_HDFS_HOME=%s
@@ -364,6 +370,10 @@ $HADOOP_LZO_HOME/lib"
  -s, --site
        The item of tajo-site.xml(Optional, space delimiter)
        ex) --tajo-site.xml "tajo.rootdir=s3://mybucket/tajo tajo.worker.start.cleanup=true tajo.catalog.store.class=org.apache.tajo.catalog.store.MySQLStore"
+ -j, --java
+        The java SDK version (Optional)
+        To install JDK of new version using yum and set on environment if condition is true.
+        ex) --java "1.8"
  -T, --test-home
        The Test directory path(Only test)
        ex) --test-home "/home/hadoop/bootstrap_test"
@@ -430,6 +440,12 @@ $HADOOP_LZO_HOME/lib"
                             required=False,
                             help='''The item of tajo-site.xml(Optional, space delimiter)
                         ex) --tajo-site.xml "tajo.rootdir=s3://mybucket/tajo tajo.worker.start.cleanup=true tajo.catalog.store.class=org.apache.tajo.catalog.store.MySQLStore''')
+        parser.add_argument('-j', '--java',
+                            dest='java',
+                            required=False,
+                            help='''The java SDK version (Optional)
+                        To install JDK of new version using yum and set on environment if condition is true.
+                        ex) --java "1.8"''')
         parser.add_argument('-T', '--test-home',
                             dest='test_dir',
                             required=False,
@@ -457,6 +473,58 @@ $HADOOP_LZO_HOME/lib"
         if value:
             return value.strip()
         return value
+
+    def parse_version(self, str):
+        try:
+            c = re.compile(r'.*?(?P<major>[0-9])\.(?P<minor>[0-9]).*?')
+            m = c.match(str)
+            major = m.group('major')
+            minor = m.group('minor')
+            java_version = int(major)*10 +int(minor)
+            return java_version
+        except:
+            return 0
+
+
+    def valid_java(self, java):
+        try:
+            m = re.match(r"(\d+)\.(\d+)", java)
+            if not m:
+                return False
+            else:
+                return True
+        except:
+            return False
+
+    def run_shell(self, commands):
+        try:
+            p = subprocess.Popen(commands, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+            grep_stdout = p.communicate()[0]
+            return grep_stdout.decode()
+        except:
+            return False
+
+    def install_java(self, opt):
+        input_version = opt.java
+        commands = 'java -fullversion'
+        java_full_version = self.run_shell(commands)
+        if not input_version:
+            print('Info: Failed install new java - %s' % (java_full_version,))
+            return False
+        if not self.valid_java(input_version):
+            print('Info: Failed install new java - %s (Invalied java version, you input : %s)' % (java_full_version, input_version,))
+            return False
+        java_version = self.parse_version(java_full_version)
+        input_version = self.parse_version(input_version)
+        if java_version < input_version:
+            self.run_shell("sudo yum -y install java-1.8.0-devel")
+            self.run_shell("sudo alternatives --set java /usr/lib/jvm/jre-1.8.0-openjdk.x86_64/bin/java")
+            self.run_shell("sudo alternatives --set javac /usr/lib/jvm/java-1.8.0-openjdk.x86_64/bin/javac")
+            java_full_version = self.run_shell("java -fullversion")
+            print('Info: Successed install new java to - %s' % (java_full_version,))
+            return True
+        else:
+            return False
 
     def init(self, fileUtil, opt):
         print('Info: Initializing.')
@@ -597,6 +665,7 @@ $HADOOP_LZO_HOME/lib"'''
             self.fileUtil.chmod('%s/conf/tajo-env.sh' % (self.TAJO_HOME,), 0775)
         tajo_env_sh = '%s/conf/tajo-env.sh' % (self.TAJO_HOME,)
         ftajo_env_sh = open(tajo_env_sh, 'a', 0)
+        echo_java_home = os.environ['JAVA_HOME']
         echo_hadoop_home = '/usr/lib/hadoop'
         echo_hadoop_mapreduce_home = '%s-mapreduce' % (echo_hadoop_home,)
         echo_hadoop_hdfs_home = '%s-hdfs' % (echo_hadoop_home,)
@@ -605,7 +674,7 @@ $HADOOP_LZO_HOME/lib"'''
         # Test mode
         if self.TEST_MODE:
             echo_hadoop_home = self.TEST_HADOOP_HOME
-        export_libs = self.EXPORT_LIBS % (echo_hadoop_home, echo_hadoop_mapreduce_home, echo_hadoop_hdfs_home, echo_hadoop_yarn_home, echo_hadoop_lzo_home,)
+        export_libs = self.EXPORT_LIBS % (echo_java_home, echo_hadoop_home, echo_hadoop_mapreduce_home, echo_hadoop_hdfs_home, echo_hadoop_yarn_home, echo_hadoop_lzo_home,)
         ftajo_env_sh.write(export_libs)
 
         # using --env option
@@ -696,6 +765,9 @@ $HADOOP_LZO_HOME/lib"'''
         if opt.lib:
             values.append('-l')
             values.append('%s' % (opt.lib,))
+        if opt.java:
+            values.append('-j')
+            values.append('%s' % (opt.java,))
         if opt.test_hadoop_home:
             values.append('-H')
             values.append('%s' % (opt.test_hadoop_home,))
@@ -707,6 +779,7 @@ $HADOOP_LZO_HOME/lib"'''
     def build(self):
         self.fileUtil = FileUtil(self.TAJO_BASE)
         self.init(self.fileUtil, self.options)
+        self.install_java(self.options)
         self.download()
         self.unpack()
         self.makeln()
@@ -748,7 +821,6 @@ def main():
         hadoop_home = opt.test_hadoop_home
     pid = fileUtil.invoke_run(launcherUtil.START_INVOKE_FILE, values, hadoop_home)
     print('> Created a new process : %s %s' % (pid, values))
-
 
 if __name__ == '__main__':
     sys.exit(main())
