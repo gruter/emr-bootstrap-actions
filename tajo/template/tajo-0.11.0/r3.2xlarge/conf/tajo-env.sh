@@ -28,7 +28,7 @@
 # export TAJO_MASTER_HEAPSIZE=1000
 
 # The maximum amount of heap to use, in MB. Default is 1000.
-export TAJO_WORKER_HEAPSIZE=10000
+export TAJO_WORKER_HEAPSIZE=58000
 
 # The maximum amount of heap to use, in MB. Default is 1000.
 # export TAJO_PULLSERVER_HEAPSIZE=1000
