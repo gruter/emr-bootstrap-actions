@@ -647,6 +647,11 @@ $HADOOP_LZO_HOME/lib"'''
                 d = self.dic_name_value(property)
                 name = d['name']
                 value = d['value']
+                if name == 'tajo.rootdir':
+                    tl = value[len(value)-1]
+                    if len(value) > 0 and tl != '/' :
+                        print('>> A tail text was expected \'/\' but it appeared wrong as %s.' % (tl,))
+                        value = value + '/'
                 root = self.xmlUtil.create_node(root, 'property', name, value)
         # Default rootdir is EMR hdfs
         if not self.xmlUtil.get_property_value_from_node(root, 'tajo.rootdir'):
