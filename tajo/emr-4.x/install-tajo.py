@@ -553,7 +553,7 @@ HADOOP_MODULE_DIRS="\$HADOOP_HOME/share/hadoop/common/lib
         change = r'''
 # HADOOP JAR DIRS
 HADOOP_MODULE_DIRS="/usr/share/aws/emr/emrfs/lib
-usr/share/aws/emr/lib
+/usr/share/aws/emr/lib
 $HADOOP_HOME
 $HADOOP_HOME/lib
 $HADOOP_MAPREDUCE_HOME
