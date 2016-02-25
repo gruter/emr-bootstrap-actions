@@ -60,6 +60,11 @@ Usage: install-tajo.sh [-t|--tar] [-c|--conf] [-l|--lib] [-h|--help] [-e|--env] 
  * ``-e`` allows a user to specify environment variables in tajo-env.sh. Multiple environment variables can be combined in a space delimted list. Please refer to the above example.
  * ``-s`` allows a user to specify config properties in tajo-site.xml. Multiple properties can be combined in a space delimited list. Please refer to the above example.
 
+ ##### Note for Seoul and Frankfurt region
+ Seoul(ap-northeast-2) and Frankfurt(eu-central-1) region support S3 signature version 4 only. If you launch your instances in those regions, be sure to replace S3 paths in the commands to the same region as your instances:
+  * (in Seoul region) Path=s3://tajo-emr-seoul/… and “-c”,”s3://tajo-emr-seoul/template/…”
+  * (in Frankfurt region) Path=s3://tajo-emr-frankfurt/… and “-c”,”s3://tajo-emr-frankfurt/template/…”
+
 Sample Commands:
 ================
 
