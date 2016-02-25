@@ -60,11 +60,6 @@ Usage: install-tajo.sh [-t|--tar] [-c|--conf] [-l|--lib] [-h|--help] [-e|--env] 
  * ``-e`` allows a user to specify environment variables in tajo-env.sh. Multiple environment variables can be combined in a space delimted list. Please refer to the above example.
  * ``-s`` allows a user to specify config properties in tajo-site.xml. Multiple properties can be combined in a space delimited list. Please refer to the above example.
 
- ##### Note for Seoul and Frankfurt region
- Seoul(ap-northeast-2) and Frankfurt(eu-central-1) region support S3 signature version 4 only. If you launch your instances in those regions, be sure to replace S3 paths in the commands to the same region as your instances:
-  * (in Seoul region) Path=s3://tajo-emr-seoul/… and “-c”,”s3://tajo-emr-seoul/template/…”
-  * (in Frankfurt region) Path=s3://tajo-emr-frankfurt/… and “-c”,”s3://tajo-emr-frankfurt/template/…”
-
 Sample Commands:
 ================
 
@@ -84,6 +79,7 @@ $ aws emr create-cluster \
 	--instance-groups InstanceGroupType=MASTER,InstanceCount=1,InstanceType=m3.xlarge InstanceGroupType=CORE,InstanceCount=1,InstanceType=c3.xlarge \
 	--bootstrap-action Name="Install tajo",Path=s3://tajo-emr/emr-3.x/install-tajo.sh,Args=["-t","s3://[your_bucket]/tajo-0.10.0.tar.gz","-c","s3://[your_bucket]/conf"]
 ```
+
 2) EMR-4.x
 ```bash
 $ aws emr create-cluster \
@@ -96,6 +92,10 @@ $ aws emr create-cluster \
 	--use-default-roles
 ```
 
+##### Note for Seoul and Frankfurt region
+Seoul(ap-northeast-2) and Frankfurt(eu-central-1) region support S3 signature version 4 only. If you launch your instances in those regions, be sure to replace S3 paths in the commands to the same region as your instances:
+ * (in Seoul region) Path=s3://tajo-emr-seoul/… and “-c”,”s3://tajo-emr-seoul/template/…”
+ * (in Frankfurt region) Path=s3://tajo-emr-frankfurt/… and “-c”,”s3://tajo-emr-frankfurt/template/…”
 
 
 
