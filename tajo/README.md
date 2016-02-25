@@ -93,7 +93,7 @@ $ aws emr create-cluster \
 ```
 
 ##### Note for Seoul and Frankfurt region
-Seoul(ap-northeast-2) and Frankfurt(eu-central-1) region support S3 signature version 4 only. If you launch your instances in those regions, be sure to replace S3 paths in the commands to the same region as your instances:
+If you launch your instances in Seoul(ap-northeast-2) and Frankfurt(eu-central-1), be sure to replace S3 paths in the commands to the same region as your instances:
  * (in Seoul region) Path=s3://tajo-emr-seoul/… and “-c”,”s3://tajo-emr-seoul/template/…”
  * (in Frankfurt region) Path=s3://tajo-emr-frankfurt/… and “-c”,”s3://tajo-emr-frankfurt/template/…”
 
